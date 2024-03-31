@@ -57,7 +57,6 @@ class Item:
         print("Historical Significance: ", self._historical_significance)
         print("")
 
-
 class Exhibition:
     """    
     This class represents an exhibition that exists in the museum.
@@ -510,4 +509,3 @@ special1 = Special("MASQUERAVE","Light Show and Dance", 1, "2024-04-27", "2024-0
 special2 = Special("From Kalila wa Dimna to La Fontaine", "Art", 117, "2024-03-26", "2024-07-21","Exhibition Hall 1", 35.0)
 
 
-main()
