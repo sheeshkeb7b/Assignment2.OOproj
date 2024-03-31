@@ -1,5 +1,6 @@
 from enum import Enum
 from datetime import datetime
+import uuid
 
 
 class ItemLocation(Enum):
@@ -35,7 +36,6 @@ class Item:
     - item_DOC: The date of creation of the item
     - historical_significance: The historical significance of the item
     - item_exhibition: The items that are displayed in the exhibition.
-
     """
 
     def __init__(self, item_id, item_title, item_artist, item_type, item_DOC, historical_significance, item_exhibition):
@@ -47,7 +47,7 @@ class Item:
         self._historical_significance = historical_significance
         self._item_exhibition = []
 
-    def displayItem(self):
+    def display_item(self):
         "This function displays information of a specific item."
         print("ID: ", self._item_id)
         print("Title: ", self._item_title)
@@ -67,7 +67,6 @@ class Exhibition:
     - exhibition_location: The location of the exhibition (permanent galleries, exhibition halls, or outdoor spaces)
     - exhibition_duration: The duration of the exhibition.
     - Items: The items in the exhibition
-    
     """
 
     def __init__(self, exhibition_title, exhibition_location, exhibition_duration):
@@ -82,6 +81,7 @@ class Exhibition:
 
     def display_exhibition(self):
         "This function displays information of an exhibition."
+        print("====" * 10)
         print("Exhibition: ", self._exhibition_title)
         print("Location: ", self._exhibition_location.value)
         print("Duration: ", self._exhibition_duration)
@@ -91,10 +91,8 @@ class Exhibition:
             print("There are no items in the exhibition.")
         else:
             for item in self._Items:
-                item.displayItem()
-                print("----" * 10)
-        print("")
-
+                item.display_item()
+                print("")
 
 class Visitor:
     """
@@ -106,7 +104,6 @@ class Visitor:
     - visitor_ID: The ID of the visitor (If they don't have a national ID, its value will be NONE.)
     - visitor_stud_teacher: Whether the visitor is either a student or teacher.
     - visitor_tickets: The tickets a visitor has bought
-
     """
 
     def __init__(self, visitor_name, visitor_age, vistor_ID, visitor_stud_teacher):
@@ -132,26 +129,28 @@ class Ticket:
         - event_date: Date of event of the ticket
         - ticket_price: The price of the ticket
         - ticket_status: The status of the ticket (valid, invalid)
-
+        - exhibition: The exhibition assigned to a regular ticket.
         """
-
     def __init__(self, ticket_ID, ticket_type, purchase_date, event_date, ticket_price, ticket_status):
-        self._ticket_ID = ticket_ID
+        self._ticket_ID = str(uuid.uuid4())[:15]
         self._ticket_type = ticket_type
         self._purchase_date = purchase_date
         self._event_date = event_date
         self._ticket_price = ticket_price
         self._ticket_status = ticket_status
+        self._exhibition = None
 
     def display_receipt(self):
         "This function displays the receipt of a ticket"
-        print("====" * 10, "Recept", "====" * 10)
+        print("====" * 10, "Receipt", "====" * 10)
         print("Ticket ID:", self._ticket_ID)
         print("Price (AED): ", self._ticket_price)
-        print("Ticket Type: ", self._ticket_type)
-        print("Status: ", self._ticket_status)
+        print("Ticket Type: ", self._ticket_type.value)
+        print("Status: ", self._ticket_status.value)
         print("Purchase Date: ", self._purchase_date)
         print("Event Date: ", self._event_date)
+        if self._exhibition is not None:
+            print("Exhibition:", self._exhibition._exhibition_title)
 
 
 class Tour(Ticket):
@@ -164,9 +163,10 @@ class Tour(Ticket):
     - selected_date: The scheduled date of the tour
     - tour_lang: The language of the tour
     - tour_status: The status of the tour (Reserved, Unreserved)
-
     """
+
     def __init__(self, tour_guide, tour_size, selected_date, tour_lang, tour_status):
+        super().__init__(None, TicketType.TOUR, datetime.now(), selected_date, 0.0, TicketStatus.VALID)
         self._tour_guide = tour_guide
         self._tour_size = tour_size
         self._selected_date = selected_date
@@ -175,12 +175,24 @@ class Tour(Ticket):
 
     def display_tour(self):
         "This function displays the information of a tour"
-        print("Tour Guide: ", self._tour_guide)
-        print("Tour Size: ", self._tour_size, "people")
-        print("Scheduled Date: ", self._selected_date)
-        print("Tour Language: ", self._tour_lang)
-        print("Tour Status: ", self._tour_status.value)
+        print("Tour Guide:", self._tour_guide)
+        print("Tour Size:", self._tour_size, "people")
+        print("Scheduled Date:", self._selected_date)
+        print("Tour Language:", self._tour_lang)
+        print("Tour Status:", self._tour_status.value)
         print("")
+
+    def display_tour_recept(self):
+        super().display_receipt()
+        print("----" * 10 )
+        print("Tour Information:")
+        print("Tour Guide:", self._tour_guide)
+        print("Tour Size:", self._tour_size, "people")
+        print("Scheduled Date:", self._selected_date)
+        print("Tour Language:", self._tour_lang)
+        print("Tour Status:", self._tour_status.value)
+        print("")
+
 
 
 class Special(Ticket):
@@ -189,7 +201,7 @@ class Special(Ticket):
 
     Attributes:
     - special_title: The title of a special event
-    - special_type: The type of special event (Fundraising, musical concerts, or light shows)
+    - special_type: The type of special event
     - special_duration: The duration of the special event
     - special_from: The start date of a special event
     - special_to: The end date of a special event
@@ -197,6 +209,7 @@ class Special(Ticket):
     - special_price: The price of a single regular special event ticket in AED.
     """
     def __init__(self, special_title, special_type, special_duration, special_from, special_to, special_location, special_price):
+        super().__init__(None, TicketType.SPECIAL_EVENT, datetime.now(), special_from, 0.0, TicketStatus.VALID)
         self._special_title = special_title
         self._special_type = special_type
         self._special_duration = special_duration
@@ -216,6 +229,47 @@ class Special(Ticket):
         print("Price (AED):", self._special_price)
         print("")
 
+    def display_special_recept(self):
+        super().display_receipt()
+        print("----" * 10 )
+        print("Special Event Information:")
+        print("Title:", self._special_title)
+        print("Event Type:", self._special_type)
+        print("From:", self._special_from)
+        print("To:", self._special_to)
+        print("Duration:", self._special_duration, "Days")
+        print("Location:", self._special_location)
+        print("Price (AED):", self._special_price)
+        print("")
+def calculate_price(ticket_type, visitor_age, visitor_ID, visitor_stud_teacher, tour_size, special_price):
+    "This function calculates the price of a ticket depending on the given parameters and conditions"
+    ticket_price = 0.0
+    if ticket_type == TicketType.EXHIBITION: #For exhibition tickets
+        if 18 <= visitor_age <= 60:
+            if visitor_ID is not None:
+                ticket_price = 63.0  # The ticket is priced normally since the visitor is aged between 18 and 60 and has a national ID
+            elif visitor_stud_teacher:
+                ticket_price = 0.0  # Students/teachers get free admission
+            else:
+                ticket_price = 63.0  # The ticket is priced normally if the visitor's age is within the range but they don't have a national ID
+
+        else:
+            if visitor_ID is not None:
+                ticket_price = 0.0  # The ticket will be free of charge if the visitor is less than 18 or above 60 and has a national ID
+            else:
+                ticket_price = 63.0  # Otherwise, the ticket is normally charged since age is not proven
+
+
+    elif ticket_type == TicketType.TOUR:
+        ticket_price = (63.0 * 0.5) * tour_size #Since tours have groups, an individual ticket in a group is discounted by 50% and then the total is multiplied by the size of the group
+
+    elif ticket_type == TicketType.SPECIAL_EVENT:
+        ticket_price = special_price * tour_size
+
+    ticket_price *= 1.05 #Applying VAT
+    return ticket_price
+
+
 
 def main():
     visitors = []
@@ -230,13 +284,16 @@ def main():
 
 
     while True:
-        #The main menu
+        #Main menu of the program
         print("====" * 10, "Menu", "====" * 10)
         print("Press 1 to purchase a ticket")
         print("Press 2 to view exhibitions and their respective items")
         print("Press 3 to add a new exhibition")
-        print("Press 4 to add a new item to an existing exhibition")
-        print("Press 5 to end the program")
+        print("Press 4 to remove an existing exhibition")
+        print("Press 5 to add a new item to an existing exhibition")
+        print("Press 6 to add a new tour")
+        print("Press 7 to add a new special event")
+        print("Press 8 to end the program")
         userChoice = int(input(""))
 
         if userChoice == 1:
@@ -249,6 +306,21 @@ def main():
             ticket_choice = int(input())
             if ticket_choice == 1:
                 ticket_type = TicketType.EXHIBITION #By choosing 1, the ticket_type will be an exhibition.
+                print("====" * 10, "Exhibitions", "====" * 10)
+                count = 1
+                if exhibitions is not None:
+                    for exhibition in exhibitions:  # Goes over all exhibitions and initiates display_exhibition function
+                        print(f"{count}. {exhibition._exhibition_title}")
+                        count += 1
+                else:
+                    print("No available exhibitions.") #If there are no exhibitions in the museum, it will show that there are none and returns the user to the menu
+                    print("")
+                    continue #returns the user to menu
+                exhibition_choice = int(input("Select an exhibition: "))
+
+                selected_exhibition = exhibitions[exhibition_choice - 1]
+
+
                 num_tickets = int(input("Enter how many tickets you would like to purchase: "))
                 total_price = 0
                 for i in range(num_tickets):
@@ -278,14 +350,14 @@ def main():
                     ticket = Ticket(len(visitors), ticket_type, purchase_date, event_date, ticket_price,
                                     TicketStatus.VALID) #Creates a ticket object from the information given
 
+                    ticket._exhibition = selected_exhibition
                     visitor.purchase_ticket(ticket)
                     ticket.display_receipt()
+                print("\nTickets have been purchased successfully!")
 
-                    print("\nTickets have been purchased successfully!")
-
-                    print("Total Tickets Purchased: ", num_tickets)
-                    print("Total: ", total_price, "AED")
-                    print("")
+                print("Total Tickets Purchased: ", num_tickets)
+                print("Total: ", total_price, "AED")
+                print("")
 
             elif ticket_choice == 2:
                 ticket_type = TicketType.TOUR #By choosing 2, the ticket_type will be a tour.
@@ -294,7 +366,7 @@ def main():
                 count = 1
                 if not unreserved_tours:
                     print("No tours available.") #If the list of unreserved tours is vacant, then all tours are reserved.
-                    break
+                    continue
                 else:
                     for tour in unreserved_tours:
                         print("Tour", count)
@@ -310,7 +382,7 @@ def main():
                 selected_tour._tour_status = TourStatus.RESERVED #After a tour has been reserved, its status is set to reserve
 
                 print("\nTickets have been purchased successfully!")
-
+                selected_tour.display_tour_recept()
 
 
                 print("Total Tickets Purchased: ", selected_tour._tour_size)
@@ -333,6 +405,9 @@ def main():
 
                 total_price = calculate_price(ticket_type, None, None, None, num_tickets, selected_special._special_price) #Calculates the total price based on the event chosen and the number of tickets
                 print("\nTickets have been purchased successfully!")
+                selected_special.display_special_recept()
+
+
                 print("Total Tickets Purchased: ", num_tickets)
                 print("Total: ", total_price, "AED")
 
@@ -352,6 +427,21 @@ def main():
             print("New exhibition added successfully!")
 
         elif userChoice == 4:
+            print("====" * 10, "Removing an exhibition", "====" * 10)
+            print("Available exhibitions:")
+            count = 1
+            for exhibition in exhibitions:  # Displays a list of exhibitions
+                print(f"{count}. {exhibition._exhibition_title}")
+                count += 1
+            remove_choice =  int(input("Select the exhibition you want to remove: "))
+            if 1 <= remove_choice <= len(exhibitions):
+                removed_exhibition = exhibitions.pop(remove_choice - 1)  # Removing the selected exhibition
+                print(f"Exhibition '{removed_exhibition._exhibition_title}' and its items has been removed successfully!")
+            else:
+                print("Invalid choice. Please select a valid exhibition.")
+                print("")
+
+        elif userChoice == 5:
             print("====" * 10, "Adding a new item", "====" * 10)
             print("Available exhibitions:")
             count = 1
@@ -373,36 +463,36 @@ def main():
             selected_exhibition.add_item(new_item) #Takes the user input and creates a new item object in the chosen exhibition
             print("New item has been added successfully!")
 
-        elif userChoice == 5:
+        elif userChoice == 6:
+            print("====" * 10, "Adding a new tour", "====" * 10)
+            tour_guide = input("Enter the name of the tour guide: ")
+            tour_size = int(input("Enter the size of the tour: "))
+            selected_date = input("Enter the scheduled date of the tour (YYYY-MM-DD): ")
+            tour_lang = input("Enter the language of the tour: ")
+            new_tour = Tour(tour_guide, tour_size, selected_date, tour_lang, TourStatus.UNRESERVED) #Creates a new tour based on the given information with its status being unreserved.
+            tours.append(new_tour) #Adds the new tour to the list of tours
+            print("A tour has been added successfully!")
+
+
+        elif userChoice == 7:
+            print("====" * 10, "Adding a new special event", "====" * 10)
+            special_title = input("Enter the title of the special event: ")
+            special_type = input("Enter the type of the special event: ")
+            special_duration = int(input("Enter the duration of the special event (days): "))
+            special_from = input("Enter the start date of the special event (YYYY-MM-DD): ")
+            special_to = input("Enter the end date of the special event (YYYY-MM-DD): ")
+            special_location = input("Enter the location of the special event: ")
+            special_price = float(input("Enter the price of a single regular ticket for the special event (AED): "))
+            new_special = Special(special_title, special_type, special_duration, special_from, special_to,
+                                  special_location, special_price) #Creating a new special event based on the given information
+            specials.append(new_special) #Adds the special event to a list of special events
+            print("New special event has been added successfully!")
+
+        elif userChoice == 8:
             print("Exiting the program...")
             break #ends the program
         else:
             print("Invalid response, please enter a valid input.")
-
-def calculate_price(ticket_type, visitor_age, visitor_ID, visitor_stud_teacher, tour_size, special_price):
-    "This function calculates the price of a ticket depending on the given parameters and conditions"
-    ticket_price = 0
-    if ticket_type == TicketType.EXHIBITION: #For exhibition tickets
-        if 18 <= visitor_age <= 60:
-            if visitor_ID is None and not visitor_stud_teacher == True:
-                ticket_price = 63 #The ticket is priced normally since the vistor is aged between between 18 and 60 and are not student/teacher
-            else:
-                ticket_price = 0 #Otherwise, the ticket will be free of charge since they have that occupation
-
-        else:
-            if visitor_ID is not None or visitor_stud_teacher == False:
-                ticket_price = 0 #The ticket will be free of charge if the visitor is less than 18 or above 60 and that they have a national ID to prove it
-            else:
-                ticket_price = 63 #Otherwise, the ticket is normally charged since age is not proven
-
-    elif ticket_type == TicketType.TOUR:
-        ticket_price = (63 * 0.5) * tour_size #Since tours have groups, an individual ticket in a group is discounted by 50% and then the total is multiplied by the size of the group
-
-    elif ticket_type == TicketType.SPECIAL_EVENT:
-        ticket_price = special_price * tour_size
-
-    ticket_price *= 1.05 #Applying VAT
-    return ticket_price
 
 
 #Initial objects created for functionality
@@ -416,8 +506,8 @@ item3 = Item("A003", "Portrait of William and Penelope Welby Playing Chess", "Fr
 tour1 = Tour("Ahmed", 40, "2024-04-01", "EN/AR", TourStatus.RESERVED)
 tour2 = Tour("Bob", 15, "2024-03-31", "EN", TourStatus.UNRESERVED)
 
-special1 = Special("MASQUERAVE","Light Show and Dance", 1, "2024-04-27", "2024-04-27", "Exhibition Hall 1", 300.0)
-special2 = Special("From Kalila wa Dimna to La Fontaine", "Art", 117, "2024-03-26", "2024-07-21","Exhibition Hall 1", 35)
+special1 = Special("MASQUERAVE","Light Show and Dance", 1, "2024-04-27", "2024-04-27", "Exhibition Hall 2", 300.0)
+special2 = Special("From Kalila wa Dimna to La Fontaine", "Art", 117, "2024-03-26", "2024-07-21","Exhibition Hall 1", 35.0)
 
 
 main()
